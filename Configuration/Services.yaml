@@ -17,6 +17,13 @@ services:
         description: 'Create a backend controller'
         schedulable: false
 
+  B13\Make\Command\Component\BackendControllerCrudCommand:
+    tags:
+      - name: 'console.command'
+        command: 'make:crud'
+        description: 'Create a backend controller with CRUD actions'
+        schedulable: false
+
   B13\Make\Command\Component\CommandCommand:
     tags:
       - name: 'console.command'

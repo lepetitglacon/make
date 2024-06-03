@@ -22,89 +22,99 @@ class BackendCrudController extends BackendController
 {
     /** @var string */
     protected $domainObject = '';
-
-    /** @var bool */
-    protected $useHeadless = false;
-
     /** @var string */
-    protected $routeIdentifier = '';
-
+    protected $domainObjectPrefix = '';
     /** @var string */
-    protected $routePath = '';
-
+    protected $domainObjectModel = '';
     /** @var string */
-    protected $methodName = '';
+    protected $domainObjectRepository = '';
 
-    public function getDomainObject(): string
-    {
+    public function getDomainObject(): string {
         return $this->domainObject;
     }
 
-    public function setDomainObject(string $domainObject): BackendController
-    {
+    public function setDomainObject(string $domainObject): BackendCrudController {
         $this->domainObject = $domainObject;
         return $this;
     }
 
-    public function getUseHeadless(): bool
+    public function getDomainObjectPrefix(): string
     {
-        return $this->useHeadless;
-
+        return $this->domainObjectPrefix;
     }
 
-    public function setUseHeadless(bool $useHeadless): BackendController
+    public function setDomainObjectPrefix(string $domainObjectPrefix): BackendCrudController
     {
-        $this->useHeadless = $useHeadless;
+        $this->domainObjectPrefix = $domainObjectPrefix;
         return $this;
     }
 
-
-
-    public function getRouteIdentifier(): string
+    public function getDomainObjectModel(): string
     {
-        return $this->routeIdentifier;
+        return $this->domainObjectModel;
     }
 
-    public function getRouteIdentifierProposal(string $prefix): string
+    public function setDomainObjectModel(string $domainObjectModel): BackendCrudController
     {
-        return 'tx_' . trim($prefix, '_') . '_' . mb_strtolower(
-            trim(str_replace('Controller', '', preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $this->name)), '_'),
-            'utf-8'
-        );
-    }
-
-    public function setRouteIdentifier(string $routeIdentifier): BackendController
-    {
-        $this->routeIdentifier = trim(str_replace('-', '_', $routeIdentifier), '_');
+        $this->domainObjectModel = $domainObjectModel;
         return $this;
     }
 
-    public function getRoutePathProposal(): string
+    public function getDomainObjectRepository(): string
     {
-        return mb_strtolower(
-            '/' . trim(str_replace('_', '/', str_replace('tx_', '', $this->routeIdentifier)), '/)'),
-            'utf-8'
-        );
+        return $this->domainObjectRepository;
     }
 
-    public function setRoutePath(string $routePath): BackendController
+    public function setDomainObjectRepository(string $domainObjectRepository): BackendCrudController
     {
-        $this->routePath = '/' . trim($routePath, '/');
+        $this->domainObjectRepository = $domainObjectRepository;
         return $this;
     }
 
-    public function setMethodName(string $methodName): BackendController
+    public function getPsr4Prefix(): string
     {
-        $this->methodName = $methodName;
-        return $this;
+        return $this->psr4Prefix;
     }
 
-    public function getArrayConfiguration(): array
+    public function getDomainObjectPrefixDefaults()
     {
-        return  [
-            'path' => $this->routePath,
-            'target' => $this->getClassName() . ($this->methodName !== '' ? '::' . $this->methodName : ''),
-        ];
+        return $this->getPsr4Prefix() . 'Classes\Domain';
+    }
+
+    public function getDomainObjectModelDefaults()
+    {
+        return $this->domainObjectPrefix . '\Model\\' .
+            ucfirst(GeneralUtility::underscoredToLowerCamelCase($this->getDomainObject()));
+    }
+
+    public function getDomainObjectRepositoryDefaults()
+    {
+        return $this->domainObjectPrefix . '\Respository\\' .
+            ucfirst(GeneralUtility::underscoredToLowerCamelCase($this->getDomainObject())) .
+            'Repository';
+    }
+
+    public function getDomainObjectControllerDefaults()
+    {
+        return ucfirst(GeneralUtility::underscoredToLowerCamelCase($this->getDomainObject())) .
+            'Controller';
+    }
+
+    protected function getDomainObjectModelClassname()
+    {
+        return explode('\\',$this->getDomainObjectModel())[count(explode('\\',$this->getDomainObjectModel())) -1];
+    }
+    protected function getDomainObjectModelVariable()
+    {
+        return lcfirst(explode('\\',$this->getDomainObjectModel())[count(explode('\\',$this->getDomainObjectModel())) -1]);
+    }
+    protected function getDomainObjectRepositoryClassname()
+    {
+        return explode('\\',$this->getDomainObjectRepository())[count(explode('\\',$this->getDomainObjectModel())) -1];
+    }
+    protected function getDomainObjectRepositoryVariable()
+    {
+        return lcfirst(explode('\\',$this->getDomainObjectRepository())[count(explode('\\',$this->getDomainObjectModel())) -1]);
     }
 
     public function __toString(): string
@@ -113,24 +123,47 @@ class BackendCrudController extends BackendController
         $standaloneView = GeneralUtility::makeInstance(StandaloneView::class);
         $templatePathAndFile = 'EXT:make/Resources/Private/CodeTemplates/BackendCrudController.html';
         $standaloneView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName($templatePathAndFile));
+
+
+
         $standaloneView->assignMultiple([
             'namespace' => $this->getNamespace(),
             'name' => $this->name,
+            'domainObject' => [
+                'name' => ucfirst(GeneralUtility::underscoredToLowerCamelCase($this->getDomainObject())),
+                'table' => $this->getDomainObject(),
+                'prefix' => $this->getDomainObjectPrefix(),
+                'modelClassname' => $this->getDomainObjectModelClassname(),
+                'modelVariable' => $this->getDomainObjectModelVariable(),
+                'repositoryClassname' => $this->getDomainObjectRepositoryClassname(),
+                'repositoryVariable' => $this->getDomainObjectRepositoryVariable(),
+            ],
+            'domainObjectModel' => $this->getDomainObjectModel(),
+            'domainObjectRepository' => $this->getDomainObjectRepository(),
             'actions' => [
-                'index', 'new', 'create', 'edit', 'update', 'delete'
+                [
+                    'name' => 'index'
+                ],
+                [
+                    'name' => 'show'
+                ],
+                [
+                    'name' => 'new'
+                ],
+                [
+                    'name' => 'create'
+                ],
+                [
+                    'name' => 'edit'
+                ],
+                [
+                    'name' => 'update'
+                ],
+                [
+                    'name' => 'delete'
+                ],
             ]
         ]);
         return $standaloneView->render();
-    }
-
-    public function getServiceConfiguration(): array
-    {
-        return [
-            $this->getClassName() => [
-                'tags' => [
-                    'backend.controller',
-                ],
-            ],
-        ];
     }
 }

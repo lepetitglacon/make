@@ -7,8 +7,12 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
-class {name}
+use {domainObject.prefix}\Model\{domainObject.modelClassname};
+use {domainObject.prefix}\Repository\{domainObject.repositoryClassname};
+
+class {name} extends ActionController
 {
     /** @var ResponseFactoryInterface */
     protected $responseFactory;
@@ -16,17 +20,29 @@ class {name}
     /** @var StreamFactoryInterface */
     protected $streamFactory;
 
-    public function __construct(ResponseFactoryInterface $responseFactory, StreamFactoryInterface $streamFactory)
+    /** @var {domainObject.repositoryClassname} */
+    protected ${domainObject.repositoryVariable};
+
+    public function __construct(
+        ResponseFactoryInterface $responseFactory,
+        StreamFactoryInterface $streamFactory,
+        {domainObject.repositoryClassname} ${domainObject.repositoryVariable}
+    )
     {
         $this->responseFactory = $responseFactory;
         $this->streamFactory = $streamFactory;
+        $this->{domainObject.repositoryVariable} = ${domainObject.repositoryVariable};
     }
     <f:for each="{actions}" as="action">
-    /** <f:format.raw>{name}</f:format.raw>
-    * <f:format.raw>{action}</f:format.raw>
+    /** <f:format.raw>{action.name}</f:format.raw>
+    *
     */
-    public function <f:format.raw>{action}</f:format.raw>Action(ServerRequestInterface $request): ResponseInterface
+    public function <f:format.raw>{action.name}</f:format.raw>Action(ServerRequestInterface $request): ResponseInterface
     {
+        <f:if condition="{action.name} == 'index'">
+            $objects = $this->{domainObject.repositoryVariable}->findAll();
+            $this->view->assign('objects', $objects);
+        </f:if>
         // Do awesome stuff
 
         if (Context::IsHeadless()) {

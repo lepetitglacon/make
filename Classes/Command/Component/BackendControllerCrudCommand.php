@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 namespace B13\Make\Command\Component;
 
-use B13\make\Classes\Component\Extension\ExtLocalConf;
 use B13\Make\Component\BackendController;
 use B13\Make\Component\BackendCrudController;
 use B13\Make\Component\ComponentInterface;
+use B13\Make\Component\Extension\ExtLocalConf;
 use B13\Make\Exception\AbortCommandException;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
@@ -26,7 +26,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class BackendControllerCrudCommand extends MultipleComponentCommand
 {
-
     function createComponents()
     {
         $this->io->writeln('We will create : ' . implode(',', ['zz', 'yy']) . ' components');
@@ -83,23 +82,39 @@ class BackendControllerCrudCommand extends MultipleComponentCommand
                     $backendController->getRoutePathProposal()
                 )
             );
+        $this->components[] = $backendController;
 
-        $extLocalConf = new ExtLocalConf($this->psr4Prefix);
-        $extLocalConf
-            ->setPlugins(
-                (string)$this->io->ask(
-                    'Which are the names of the frontend plugins (csv)',
-                    $backendController->getDomainObjectPrefixDefaults(),
-                    [$this, 'answerRequired']
-                )
-            );
+        if (strtolower($this->io->ask(
+            'Create frontend plugin ? Y/n',
+            'Y',
+            [$this, 'answerRequired']
+        )) === 'y') {
+            $extLocalConf = new ExtLocalConf($this->psr4Prefix);
+            $extLocalConf
+                ->addVariable('plugins', [
+                    $this->io->ask(
+                        'Groupe all action in one frontend plugin ?',
+                        $backendController->getDomainObjectModelClassname() . 'Plugin',
+                        [$this, 'answerRequired']
+                    )
+                ])
+                ->addVariable('extensionName', ucfirst(GeneralUtility::underscoredToLowerCamelCase($this->extensionKey)))
+                ->addVariable('extensionKey', $this->extensionKey)
+                ->addVariable('actions', $backendController->actions)
+                ->addVariable('controllerUse', $backendController->getClassName())
+                ->addVariable('controllerName', $backendController->getName())
+                ->addVariable('controllerName', $backendController->getName())
+            ;
+            $this->components[] = $extLocalConf;
+        }
 
-        return [$backendController, ];
+
+        return $this->components;
     }
 
     protected function createComponent(): ComponentInterface
     {
-        return new BackendCrudController($this->psr4Prefix);;
+        return new BackendCrudController($this->psr4Prefix);
     }
 
     /**

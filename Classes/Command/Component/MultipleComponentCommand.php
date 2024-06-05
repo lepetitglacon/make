@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace B13\Make\Command\Component;
 
 use B13\Make\Command\AbstractCommand;
+use B13\Make\Component\BackendController;
 use B13\Make\Component\ComponentInterface;
 use B13\Make\Component\ServiceConfigurationComponentInterface;
 use B13\Make\Exception\AbortCommandException;
@@ -34,7 +35,6 @@ abstract class MultipleComponentCommand extends SimpleComponentCommand
     protected array $components = [];
 
     abstract function createComponents();
-
 
     public function getComponents(): array
     {
@@ -74,6 +74,8 @@ abstract class MultipleComponentCommand extends SimpleComponentCommand
         foreach ($components as $component) {
             $absoluteComponentDirectory = $this->getAbsoluteComponentDirectory($component);
 
+            $this->io->writeln("writing in $absoluteComponentDirectory");
+
             if (!file_exists($absoluteComponentDirectory)) {
                 try {
                     GeneralUtility::mkdir_deep($absoluteComponentDirectory);
@@ -100,13 +102,15 @@ abstract class MultipleComponentCommand extends SimpleComponentCommand
                 return 1;
             }
 
-            try {
-                if (!$this->publishComponentConfiguration($component)) {
-                    return 1;
+            if ($component instanceof BackendController) {
+                try {
+                    if (!$this->publishComponentConfiguration($component)) {
+                        return 1;
+                    }
+                } catch (AbortCommandException $e) {
+                    $this->io->note($e->getMessage());
+                    return 0;
                 }
-            } catch (AbortCommandException $e) {
-                $this->io->note($e->getMessage());
-                return 0;
             }
 
             if ($this->showFlushCacheMessage) {
@@ -115,5 +119,11 @@ abstract class MultipleComponentCommand extends SimpleComponentCommand
         }
 
         return 0;
+    }
+
+    protected function getAbsoluteComponentDirectory(ComponentInterface $component): string
+    {
+        return $this->package->getPackagePath()
+            . $component->getDirectory();
     }
 }

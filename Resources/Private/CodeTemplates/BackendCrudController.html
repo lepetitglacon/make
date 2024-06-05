@@ -37,20 +37,26 @@ class {name} extends ActionController
     /** <f:format.raw>{action.name}</f:format.raw>
     *
     */
-    public function <f:format.raw>{action.name}</f:format.raw>Action(ServerRequestInterface $request): ResponseInterface
+        public function <f:format.raw>{action.name}</f:format.raw>Action(<f:if condition="{action.name} != 'index'">{domainObject.modelClassname} ${domainObject.modelVariable}</f:if>): ResponseInterface
     {
-        <f:if condition="{action.name} == 'index'">
-            $objects = $this->{domainObject.repositoryVariable}->findAll();
-            $this->view->assign('objects', $objects);
-        </f:if>
         // Do awesome stuff
+        <f:switch expression="{action.name}">
+            <f:case value="index">
+        $objects = $this->{domainObject.repositoryVariable}->findAll();
+        $this->view->assignMultiple([
+            'objects' => $objects
+        ]);
+            </f:case>
+            <f:case value="show">
+        $this->view->assignMultiple([
+            '{domainObject.modelVariable}' => ${domainObject.modelVariable}
+        ]);
+            </f:case><f:defaultCase></f:defaultCase></f:switch>
 
         if (Context::IsHeadless()) {
             return $this->jsonResponse($this->responseFactory->createResponse());
         } else {
-            return $this->responseFactory->createResponse()->withBody(
-                $this->streamFactory->createStream('Response content from {{NAME}} with route path: ' . $request->getAttribute('route')->getPath())
-            );
+            return $this->htmlResponse();
         }
     }
     </f:for>

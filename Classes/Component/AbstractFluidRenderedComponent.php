@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace B13\Make\Component;
 
+use B13\Make\Component\Extension\ExtLocalConf;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 
@@ -29,9 +30,20 @@ abstract class AbstractFluidRenderedComponent implements ComponentInterface, Flu
     /** @var string */
     protected $directory = '';
 
+    /** @var string */
+    public $fluidVariables = [];
+
     public function __construct(string $psr4Prefix)
     {
         $this->psr4Prefix = ucfirst(trim(str_replace('/', '\\', $psr4Prefix), '\\')) . '\\';
+        $this->fluidVariables = [
+            '_baseVariables' => [
+                'name' => $this->name,
+                'namespace' => $this->getNamespace(),
+                'psr4Prefix' => $this->psr4Prefix,
+                'directory' => $this->directory,
+            ]
+        ];
     }
 
     public function getName(): string
@@ -104,19 +116,18 @@ abstract class AbstractFluidRenderedComponent implements ComponentInterface, Flu
         $standaloneView = GeneralUtility::makeInstance(StandaloneView::class);
         $templatePathAndFile = $templatePath;
         $standaloneView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName($templatePathAndFile));
+        $standaloneView->assignMultiple($this->getFluidVariables());
         return $standaloneView;
     }
 
     public function getFluidVariables(): array
     {
-        return [
-            'baseVariables' => [
-                'name' => $this->name,
-                'namespace' => $this->getNamespace(),
-                'psr4Prefix' => $this->psr4Prefix,
-                'directory' => $this->directory,
-            ]
-        ];
+        return $this->fluidVariables;
+    }
+
+    public function addVariable($name, $data): ExtLocalConf {
+        $this->fluidVariables[$name] = $data;
+        return $this;
     }
 
     public function __toString(): string

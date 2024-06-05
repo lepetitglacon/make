@@ -1,7 +1,31 @@
-<?php
+<?php //>
 
 declare(strict_types=1);
 
-use MyVendor\MyExtension\MyClass;
+use <f:format.raw>{controllerUse}</f:format.raw>;
+use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 
 defined('TYPO3') or die();
+
+$extensionKey = '<f:format.raw>{extensionKey}</f:format.raw>';
+
+// adding typoscript file
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+   $extensionKey,
+   'setup',
+   "@import 'EXT:$extensionKey/Configuration/TypoScript/setup.typoscript'"
+);
+
+/** FRONTEND PLUGINS */
+<f:for each="{plugins}" as="plugin">
+ExtensionUtility::configurePlugin(
+   '<f:format.raw>{extensionName}</f:format.raw>',
+   '<f:format.raw>{plugin}</f:format.raw>',
+   [
+      <f:format.raw>{controllerName}</f:format.raw>::class => '<f:for each="{actions}" as="action"><f:format.raw>{action.name}</f:format.raw>,</f:for>'
+   ],
+   [
+      <f:format.raw>{controllerName}</f:format.raw>::class => '<f:for each="{actions}" as="action"><f:format.raw>{action.name}</f:format.raw>,</f:for>'
+   ]
+);
+</f:for>

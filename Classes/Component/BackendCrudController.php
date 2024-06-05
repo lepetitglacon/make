@@ -29,6 +29,30 @@ class BackendCrudController extends BackendController
     /** @var string */
     protected $domainObjectRepository = '';
 
+    public $actions = [
+        [
+            'name' => 'index'
+        ],
+        [
+            'name' => 'show'
+        ],
+        [
+            'name' => 'new'
+        ],
+        [
+            'name' => 'create'
+        ],
+        [
+            'name' => 'edit'
+        ],
+        [
+            'name' => 'update'
+        ],
+        [
+            'name' => 'delete'
+        ],
+    ];
+
     public function getDomainObject(): string {
         return $this->domainObject;
     }
@@ -78,7 +102,7 @@ class BackendCrudController extends BackendController
 
     public function getDomainObjectPrefixDefaults()
     {
-        return $this->getPsr4Prefix() . 'Classes\Domain';
+        return $this->getPsr4Prefix() . 'Domain';
     }
 
     public function getDomainObjectModelDefaults()
@@ -100,19 +124,19 @@ class BackendCrudController extends BackendController
             'Controller';
     }
 
-    protected function getDomainObjectModelClassname()
+    public function getDomainObjectModelClassname()
     {
         return explode('\\',$this->getDomainObjectModel())[count(explode('\\',$this->getDomainObjectModel())) -1];
     }
-    protected function getDomainObjectModelVariable()
+    public function getDomainObjectModelVariable()
     {
         return lcfirst(explode('\\',$this->getDomainObjectModel())[count(explode('\\',$this->getDomainObjectModel())) -1]);
     }
-    protected function getDomainObjectRepositoryClassname()
+    public function getDomainObjectRepositoryClassname()
     {
         return explode('\\',$this->getDomainObjectRepository())[count(explode('\\',$this->getDomainObjectModel())) -1];
     }
-    protected function getDomainObjectRepositoryVariable()
+    public function getDomainObjectRepositoryVariable()
     {
         return lcfirst(explode('\\',$this->getDomainObjectRepository())[count(explode('\\',$this->getDomainObjectModel())) -1]);
     }
@@ -123,8 +147,6 @@ class BackendCrudController extends BackendController
         $standaloneView = GeneralUtility::makeInstance(StandaloneView::class);
         $templatePathAndFile = 'EXT:make/Resources/Private/CodeTemplates/BackendCrudController.html';
         $standaloneView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName($templatePathAndFile));
-
-
 
         $standaloneView->assignMultiple([
             'namespace' => $this->getNamespace(),
@@ -140,29 +162,7 @@ class BackendCrudController extends BackendController
             ],
             'domainObjectModel' => $this->getDomainObjectModel(),
             'domainObjectRepository' => $this->getDomainObjectRepository(),
-            'actions' => [
-                [
-                    'name' => 'index'
-                ],
-                [
-                    'name' => 'show'
-                ],
-                [
-                    'name' => 'new'
-                ],
-                [
-                    'name' => 'create'
-                ],
-                [
-                    'name' => 'edit'
-                ],
-                [
-                    'name' => 'update'
-                ],
-                [
-                    'name' => 'delete'
-                ],
-            ]
+            'actions' => $this->actions
         ]);
         return $standaloneView->render();
     }
